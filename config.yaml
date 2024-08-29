@@ -1,0 +1,79 @@
+# config.yaml
+
+model:
+  type: DenseNet121
+  input_shape: [224, 224, 3]
+  pretrained: True
+  trainable: False
+  custom_layers:
+    - type: Dense
+      units: 64
+      activation: relu
+      l2: 0.01
+    - type: Dropout
+      rate: 0.2
+    - type: Dense
+      units: 64
+      activation: relu
+      l2: 0.01
+    - type: Dense
+      units: 1
+      activation: sigmoid
+      l2: 0.01
+
+training:
+  batch_size: 32
+  epochs: 3
+  learning_rate: 0.001
+  optimizer: adam  # Choose optimizer (adam, sgd, rmsprop, etc.)
+  loss_function: binary_crossentropy
+  metrics:
+    - accuracy
+    - precision
+    - recall
+  callbacks:
+    early_stopping: True
+    model_checkpoint: True
+    learning_rate_scheduler: reduce_on_plateau # Options: reduce_on_plateau, exponential_decay, none
+
+data:
+  img_size: [224, 224]
+  train_dir: data/train
+  val_dir: data/val
+  test_dir: data/test
+
+
+tuning:
+  perform_tuning: True         # Set to True to perform hyperparameter tuning
+  max_trials: 5             # Maximum number of trials during tuning
+  executions_per_trial: 1      # Number of executions per trial
+  objective: val_accuracy      # Objective metric to optimize during tuning
+  search_space:                # Hyperparameter search space definitions
+    base_model:                # Search between different base models
+      - DenseNet121
+      - MobileNetV2
+    image_size:                # Search between different image sizes
+      - 128
+      - 224
+    num_layers:                # Search between different numbers of layers
+      min: 1
+      max: 5
+    units:                     # Search between different units per layer
+      - 64
+      - 128
+      - 256
+    dropout_rate:              # Search between different dropout rates
+      - 0.3
+      - 0.5
+      - 0.2
+    l2:                        # Search between different L2 regularization values
+      - 0.001
+      - 0.01
+      - 0.05
+    optimizer:                 # Search between different optimizers
+      - adam
+      - rmsprop
+    learning_rate:             # Search between different learning rates
+      - 0.0001
+      - 0.001
+      - 0.01

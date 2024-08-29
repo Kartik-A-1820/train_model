@@ -1,0 +1,16 @@
+artifact_uri: file:///F:/train_models/mlruns/734377485715235504/08dbc68d64d14bebb9d93a72d6912fa1/artifacts
+deleted_time: 1724839725684
+end_time: 1724835538227
+entry_point_name: ''
+experiment_id: '734377485715235504'
+lifecycle_stage: deleted
+run_id: 08dbc68d64d14bebb9d93a72d6912fa1
+run_name: adorable-ape-812
+run_uuid: 08dbc68d64d14bebb9d93a72d6912fa1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1724835338234
+status: 3
+tags: []
+user_id: KARTIK

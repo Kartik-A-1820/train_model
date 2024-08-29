@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/train_models/mlruns/734377485715235504/a2795db7b30b47f69684353e7830f11b/artifacts
+end_time: 1724844240267
+entry_point_name: ''
+experiment_id: '734377485715235504'
+lifecycle_stage: active
+run_id: a2795db7b30b47f69684353e7830f11b
+run_name: zealous-dog-284
+run_uuid: a2795db7b30b47f69684353e7830f11b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1724844096987
+status: 3
+tags: []
+user_id: KARTIK

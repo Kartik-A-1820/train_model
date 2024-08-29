@@ -1,0 +1,1 @@
+{'early_stopping': True, 'model_checkpoint': True, 'learning_rate_scheduler': 'reduce_on_plateau'}

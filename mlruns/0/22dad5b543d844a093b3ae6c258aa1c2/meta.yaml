@@ -1,0 +1,16 @@
+artifact_uri: file:///F:/train_models/mlruns/0/22dad5b543d844a093b3ae6c258aa1c2/artifacts
+deleted_time: 1724843561848
+end_time: 1724841399960
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: deleted
+run_id: 22dad5b543d844a093b3ae6c258aa1c2
+run_name: luminous-roo-983
+run_uuid: 22dad5b543d844a093b3ae6c258aa1c2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1724841003827
+status: 3
+tags: []
+user_id: KARTIK

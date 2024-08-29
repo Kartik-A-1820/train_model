@@ -1,0 +1,16 @@
+artifact_uri: file:///F:/train_models/mlruns/734377485715235504/151aee511c05460098e20f5ab628a2fb/artifacts
+deleted_time: 1724839725683
+end_time: 1724838178175
+entry_point_name: ''
+experiment_id: '734377485715235504'
+lifecycle_stage: deleted
+run_id: 151aee511c05460098e20f5ab628a2fb
+run_name: brawny-crow-553
+run_uuid: 151aee511c05460098e20f5ab628a2fb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1724838171221
+status: 4
+tags: []
+user_id: KARTIK

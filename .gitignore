@@ -1,0 +1,13 @@
+# Ignore Python bytecode and cache files
+__pycache__/
+
+# Ignore datasets
+data/test/
+data/train/
+data/val/
+
+# Ignore model files (HDF5 format)
+*.h5
+
+# Ignore MLflow artifacts directory
+mlruns/

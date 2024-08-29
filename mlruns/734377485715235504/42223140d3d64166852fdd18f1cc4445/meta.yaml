@@ -1,0 +1,16 @@
+artifact_uri: file:///F:/train_models/mlruns/734377485715235504/42223140d3d64166852fdd18f1cc4445/artifacts
+deleted_time: 1724843370642
+end_time: 1724840199702
+entry_point_name: ''
+experiment_id: '734377485715235504'
+lifecycle_stage: deleted
+run_id: 42223140d3d64166852fdd18f1cc4445
+run_name: bouncy-swan-492
+run_uuid: 42223140d3d64166852fdd18f1cc4445
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1724840029630
+status: 3
+tags: []
+user_id: KARTIK

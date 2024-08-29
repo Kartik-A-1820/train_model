@@ -1,0 +1,1 @@
+[{'type': 'Dense', 'units': 256, 'activation': 'relu', 'l2': 0.01}, {'type': 'Dropout', 'rate': 0.5}, {'type': 'Dense', 'units': 128, 'activation': 'relu', 'l2': 0.01}, {'type': 'Dense', 'units': 1, 'activation': 'sigmoid', 'l2': 0.01}]

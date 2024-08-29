@@ -1,0 +1,15 @@
+artifact_uri: file:///F:/train_models/mlruns/734377485715235504/84f647c152af4322899799a9c3ad4dce/artifacts
+end_time: 1724844839325
+entry_point_name: ''
+experiment_id: '734377485715235504'
+lifecycle_stage: active
+run_id: 84f647c152af4322899799a9c3ad4dce
+run_name: Hyperparameter Tuning
+run_uuid: 84f647c152af4322899799a9c3ad4dce
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1724844839242
+status: 3
+tags: []
+user_id: KARTIK
