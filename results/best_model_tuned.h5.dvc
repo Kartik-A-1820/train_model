@@ -1,0 +1,5 @@
+outs:
+- md5: 612e317a2c136766105f42d610e1cbad
+  size: 30446584
+  hash: md5
+  path: best_model_tuned.h5
