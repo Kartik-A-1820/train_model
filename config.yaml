@@ -7,15 +7,23 @@ model:
   trainable: False
   custom_layers:
     - type: Dense
-      units: 64
+      units: 256
       activation: relu
       l2: 0.01
     - type: Dropout
-      rate: 0.2
+      rate: 0.4
+    - type: Dense
+      units: 128
+      activation: relu
+      l2: 0.01
+    - type: Dropout
+      rate: 0.3
     - type: Dense
       units: 64
       activation: relu
       l2: 0.01
+    - type: Dropout
+      rate: 0.3     
     - type: Dense
       units: 1
       activation: sigmoid
@@ -44,7 +52,7 @@ data:
 
 
 tuning:
-  perform_tuning: True         # Set to True to perform hyperparameter tuning
+  perform_tuning: False         # Set to True to perform hyperparameter tuning
   max_trials: 5             # Maximum number of trials during tuning
   executions_per_trial: 1      # Number of executions per trial
   objective: val_accuracy      # Objective metric to optimize during tuning

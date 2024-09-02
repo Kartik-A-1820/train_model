@@ -40,7 +40,20 @@ def create_model(config):
     else:
         raise ValueError(f"Model type {model_config['type']} not supported.")
     
-    base_model.trainable = model_config.get('trainable', False)
+    if model_config.get('trainable', False):
+        try:
+            base_model.trainable=True
+            for layer in base_model.layers:
+                if layer.name != f'conv4_block1_0_bn'.strip(): #conv4_block1_0_bn best
+                    print(f"{layer.name} ---> FREEZED")
+                    layer.trainable=False
+                else:
+                    break
+        except:
+            base_model.trainable = model_config.get('trainable', False)
+    
+    else:
+        base_model.trainable = model_config.get('trainable', False)
 
     # Create the Sequential model and add base model
     model = models.Sequential([base_model, layers.GlobalAveragePooling2D()])

@@ -1,4 +1,11 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import cv2
+import tensorflow as tf
+
+def process_image(image):
+    resized_image = cv2.resize(image,(224, 224))
+    processed_image = tf.keras.applications.densenet.preprocess_input(resized_image)
+    return processed_image
 
 def create_data_generators(train_dir, val_dir, test_dir, img_size=(224, 224), batch_size=32):
     # Image Data Generator with augmentation for training
