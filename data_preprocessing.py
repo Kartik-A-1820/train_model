@@ -10,7 +10,7 @@ def process_image(image):
 def create_data_generators(train_dir, val_dir, test_dir, img_size=(224, 224), batch_size=32):
     # Image Data Generator with augmentation for training
     train_datagen = ImageDataGenerator(
-        rescale=1./255,
+        preprocessing_function=process_image,
         rotation_range=40,
         width_shift_range=0.1,
         height_shift_range=0.1,
@@ -22,7 +22,7 @@ def create_data_generators(train_dir, val_dir, test_dir, img_size=(224, 224), ba
     )
 
     # Image Data Generator without augmentation for validation and testing
-    test_val_datagen = ImageDataGenerator(rescale=1./255)
+    test_val_datagen = ImageDataGenerator(preprocessing_function=process_image)
 
     # Create Generators
     train_generator = train_datagen.flow_from_directory(
