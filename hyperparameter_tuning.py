@@ -20,6 +20,7 @@ def build_model(hp):
             include_top=False,
             input_shape=(None, None, 3)  # Image size will be determined later
         )
+        
     elif base_model_type == 'MobileNetV2':
         base_model = MobileNetV2(
             weights='imagenet' if config['model']['pretrained'] else None,
@@ -29,7 +30,22 @@ def build_model(hp):
     else:
         raise ValueError(f"Base model {base_model_type} is not supported.")
 
-    base_model.trainable = config['model']['trainable']
+    # base_model.trainable = config['model']['trainable']
+
+    if config['model']['trainable']:
+        try:
+            base_model.trainable=True
+            for layer in base_model.layers:
+                if layer.name != f'conv4_block1_0_bn'.strip(): #conv4_block1_0_bn best
+                    print(f"{layer.name} ---> FREEZED")
+                    layer.trainable=False
+                else:
+                    break
+        except:
+            base_model.trainable = config['model']['trainable']
+    
+    else:
+        base_model.trainable = config['model']['trainable']
 
     # Determine the image size
     img_size = hp.Choice('image_size', values=config['tuning']['search_space']['image_size'])

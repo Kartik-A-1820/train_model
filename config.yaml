@@ -4,7 +4,7 @@ model:
   type: DenseNet121
   input_shape: [224, 224, 3]
   pretrained: True
-  trainable: False
+  trainable: True
   custom_layers:
     - type: Dense
       units: 256
