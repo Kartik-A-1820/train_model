@@ -11,11 +11,31 @@ from utils import plot_metrics, save_confusion_matrix
 from callbacks import get_callbacks
 from hyperparameter_tuning import tune_hyperparameters
 
-# Function to get the DVC hash of a file
-def get_dvc_hash(file_path):
-    """Get the DVC hash of a tracked file."""
-    result = subprocess.run(['dvc', 'get', file_path], capture_output=True, text=True)
-    return result.stdout.strip()
+def get_dvc_hash(dvc_file_path):
+    """Get the DVC hash of a tracked file or directory."""
+    try:
+        # Check if the file exists
+        if not os.path.exists(dvc_file_path):
+            print(f"DVC file {dvc_file_path} does not exist.")
+            return None
+        
+        # Open the DVC file and extract the MD5 hash
+        with open(dvc_file_path, 'r') as f:
+            dvc_file_content = yaml.safe_load(f)
+        
+        # Extract the MD5 hash (handle .dir suffix)
+        md5_hash = dvc_file_content['outs'][0]['md5']
+        
+        # If it's a directory, the hash ends with ".dir"
+        if md5_hash.endswith('.dir'):
+            md5_hash = md5_hash.replace('.dir', '')
+
+        return md5_hash
+    except Exception as e:
+        print(f"Error retrieving DVC hash for {dvc_file_path}: {e}")
+        return None
+
+
 
 # Load the configuration
 config = load_config()
@@ -72,9 +92,9 @@ with mlflow.start_run():
     mlflow.log_params(config['training'])  # Log training parameters
 
     # Track DVC data versions
-    train_data_version = get_dvc_hash('data/train')
-    val_data_version = get_dvc_hash('data/val')
-    test_data_version = get_dvc_hash('data/test')
+    train_data_version = get_dvc_hash('data/train.dvc')
+    val_data_version = get_dvc_hash('data/val.dvc')
+    test_data_version = get_dvc_hash('data/test.dvc')
 
     mlflow.log_param("train_data_version", train_data_version)
     mlflow.log_param("val_data_version", val_data_version)

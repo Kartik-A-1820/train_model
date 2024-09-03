@@ -31,14 +31,14 @@ model:
 
 training:
   batch_size: 32
-  epochs: 3
+  epochs: 1
   learning_rate: 0.001
   optimizer: adam  # Choose optimizer (adam, sgd, rmsprop, etc.)
   loss_function: binary_crossentropy
   metrics:
     - accuracy
-    - precision
-    - recall
+    # - precision
+    # - recall
   callbacks:
     early_stopping: True
     model_checkpoint: True
