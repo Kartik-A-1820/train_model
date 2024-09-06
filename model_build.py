@@ -45,7 +45,6 @@ def create_model(config):
             base_model.trainable=True
             for layer in base_model.layers:
                 if layer.name != f'conv4_block1_0_bn'.strip(): #conv4_block1_0_bn best
-                    print(f"{layer.name} ---> FREEZED")
                     layer.trainable=False
                 else:
                     break
