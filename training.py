@@ -10,6 +10,8 @@ from model_build import load_config, create_model
 from utils import plot_metrics, save_confusion_matrix
 from callbacks import get_callbacks
 from hyperparameter_tuning import tune_hyperparameters
+from instance_control import stop_instance
+import time
 
 def get_dvc_hash(dvc_file_path):
     """Get the DVC hash of a tracked file or directory."""
@@ -39,6 +41,7 @@ def get_dvc_hash(dvc_file_path):
 
 # Load the configuration
 config = load_config()
+instance_id = config['instance_id']
 
 # Perform hyperparameter tuning if required
 if config['tuning']['perform_tuning']:
@@ -171,3 +174,12 @@ with mlflow.start_run():
     subprocess.run(['dvc', 'push'])
     
     mlflow.end_run()
+
+# Stop instance after a 1-minute delay
+try:
+    print("Training completed. Instance will stop in 1 minute.")
+    time.sleep(60)  # Wait for 1 minute
+    stop_instance(instance_id)
+    print(f"Instance {instance_id} is stopping.")
+except Exception as e:
+    print(f"Failed to stop the instance {instance_id}. Error: {e}")
