@@ -1,7 +1,7 @@
 # config.yaml
 
 model:
-  type: DenseNet121
+  type: DenseNet121                                         # Currently only DenseNet121 OR MobileNetV2
   input_shape: [224, 224, 3]
   pretrained: True
   trainable: True
