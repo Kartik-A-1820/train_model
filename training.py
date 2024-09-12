@@ -153,7 +153,7 @@ with mlflow.start_run():
         subprocess.run(['dvc', 'push'], check=True)
         subprocess.run(['git', 'add', f'{best_model_path}.dvc', '.gitignore'], check=True)
         subprocess.run(['git', 'commit', '-m', 'Track best model'], check=True)
-        subprocess.run(['git', 'push'], check=True)
+        subprocess.run(['git', 'push', 'origin', 'main'], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error adding/pushing model to DVC: {e}")
 
