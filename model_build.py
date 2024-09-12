@@ -44,7 +44,7 @@ def create_model(config):
         try:
             base_model.trainable=True
             for layer in base_model.layers:
-                if layer.name != f'conv4_block1_0_bn'.strip(): #conv4_block1_0_bn best
+                if layer.name != f'conv3_block1_0_bn'.strip(): #conv4_block1_0_bn best
                     layer.trainable=False
                 else:
                     break

@@ -1,5 +1,7 @@
 # config.yaml
 
+dataset_name: 'white_prawns_dataset'
+
 model:
   type: DenseNet121
   input_shape: [224, 224, 3]
@@ -9,30 +11,30 @@ model:
     - type: Dense
       units: 256
       activation: relu
-      l2: 0.01
+      l2: 0.001
     - type: Dropout
-      rate: 0.4
+      rate: 0.2
     - type: Dense
       units: 128
       activation: relu
-      l2: 0.01
+      l2: 0.001
     - type: Dropout
-      rate: 0.3
+      rate: 0.2
     - type: Dense
       units: 64
       activation: relu
-      l2: 0.01
+      l2: 0.001
     - type: Dropout
-      rate: 0.3     
+      rate: 0.1     
     - type: Dense
       units: 1
       activation: sigmoid
-      l2: 0.01
+      l2: 0.001
 
 training:
   batch_size: 32
-  epochs: 1
-  learning_rate: 0.001
+  epochs: 200
+  learning_rate: 0.0001
   optimizer: adam  # Choose optimizer (adam, sgd, rmsprop, etc.)
   loss_function: binary_crossentropy
   metrics:
@@ -61,7 +63,6 @@ tuning:
       - DenseNet121
       - MobileNetV2
     image_size:                # Search between different image sizes
-      - 128
       - 224
     num_layers:                # Search between different numbers of layers
       min: 1
@@ -72,7 +73,7 @@ tuning:
       - 256
     dropout_rate:              # Search between different dropout rates
       - 0.3
-      - 0.5
+      - 0.4
       - 0.2
     l2:                        # Search between different L2 regularization values
       - 0.001
@@ -86,4 +87,5 @@ tuning:
       - 0.001
       - 0.01
 
-instance_id: 'your-instance-id-here'
+instance_id: 'i-022c6d8c4a8168fc9'
+
