@@ -2,7 +2,7 @@
 /__pycache__/
 
 # Ignore contents of the data folder but allow .dvc files
-/data/*
+/data/
 !/data/**/*.dvc
 
 # Ignore all .h5 files from any directory
