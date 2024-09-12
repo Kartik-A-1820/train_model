@@ -7,7 +7,7 @@ model:
   input_shape: [224, 224, 3]  # Image size (width, height, channels)
   pretrained: True  # Use a pre-trained model on ImageNet
   trainable: False  # If False, the base model layers won't be updated during training
-  unfreeze_from_layer: 'conv4_block1_0_bn' # Layer from which to start unfreezing
+  unfreeze_from_layer: 'conv4_block1_0_bn'  # Layer from which to start unfreezing if trainable is True
   custom_layers:  # These layers will be added on top of the base model
     - type: Dense
       units: 256  # Number of neurons in the layer
@@ -34,10 +34,10 @@ model:
 
 # Training settings: Configure the batch size, number of epochs, and learning rate
 training:
-  batch_size: 32  # Number of images processed before updating the model
-  epochs: 1  # How many times the model will see the entire dataset
-  learning_rate: 0.0001  # How fast the model learns
-  optimizer: adam  # Options: adam / sgd / rmsprop (adam is recommended for most tasks)
+  batch_size: 16  # Number of images processed before updating the model
+  epochs: 1  # How many times the model will see the entire dataset (could be overridden in tuning)
+  learning_rate: 0.0001  # How fast the model learns (used if not tuning learning rate)
+  optimizer: adam  # Default optimizer (tunable if tuning is enabled)
   loss_function: binary_crossentropy  # For binary classification
   metrics:
     - accuracy  # Measure how accurate the model is
@@ -47,27 +47,36 @@ training:
   callbacks:  # Automatically adjust training behavior
     early_stopping: True  # Stop training if no improvement in validation performance
     model_checkpoint: True  # Save the best model during training
-    learning_rate_scheduler: exponential_decay  # Options: reduce_on_plateau / exponential_decay / none
-
+    learning_rate_scheduler: reduce_on_plateau  # Options: reduce_on_plateau / exponential_decay / none
+    dynamic_augmentation: True
 # Data settings: Point to your dataset folders
 data:
   img_size: [224, 224]  # Image size to be used in training
   train_dir: data/{dataset_name}/train  # Training data folder
   val_dir: data/{dataset_name}/val  # Validation data folder
   test_dir: data/{dataset_name}/test  # Test data folder
+  augmentation: True  # Set to True to enable data augmentation
+
+# Preprocessing settings: Dynamically choose the preprocessing function based on model
+preprocessing:
+  apply_preprocessing: True  # Set to True to apply preprocessing function
+  normalize_if_not_found: True  # Normalize images if model is not DenseNet121 or MobileNetV2
 
 # Hyperparameter tuning: You can experiment with different model settings
 tuning:
-  perform_tuning: False  # Set to True to enable hyperparameter tuning
-  max_trials: 5  # Maximum number of experiments to try
+  perform_tuning: True  # Set to True to enable hyperparameter tuning
+  algorithm: 'random_search'  # Choose between 'random_search', 'bayesian_optimization', or 'hyperband'
+  max_trials: 1  # Maximum number of experiments to try
   executions_per_trial: 1  # How many times to run each experiment
   objective: val_accuracy  # The goal is to improve validation accuracy
   search_space:  # The different settings to try during tuning
     base_model:  # Which base models to try
       - DenseNet121
       - MobileNetV2
-    image_size:  # Image sizes to try
+    image_size:  # Image sizes to try (consistent size used in data generators and model)
       - 224
+      - 128
+      - 112
     num_layers:  # Number of extra layers to try
       min: 1
       max: 5

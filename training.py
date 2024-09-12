@@ -53,7 +53,6 @@ if config['tuning']['perform_tuning']:
     config_override = {
         'model': {
             'type': best_hps.get('base_model'),
-            'input_shape': [best_hps.get('image_size'), best_hps.get('image_size'), 3],
             'custom_layers': custom_layers
         },
         'training': {
@@ -64,6 +63,10 @@ if config['tuning']['perform_tuning']:
 
     config['model'].update(config_override['model'])
     config['training'].update(config_override['training'])
+    best_img_size =  best_hps.get('image_size')
+    config['model']['input_shape'] = [best_img_size, best_img_size, 3]
+    config['data']['img_size'] = [best_img_size, best_img_size]
+    print(f"After hyper parameter tuning input shape: {config['model']['input_shape']} and target_size is {config['data']['img_size']}")
 
 # Directories
 train_dir = config['data']['train_dir']
@@ -95,7 +98,7 @@ with mlflow.start_run():
     # Create data generators
     img_size = tuple(config['model']['input_shape'][:2])
     train_generator, validation_generator, test_generator = create_data_generators(
-        train_dir, val_dir, test_dir, img_size=img_size, batch_size=config['training']['batch_size']
+        train_dir, val_dir, test_dir, img_size=img_size, batch_size=config['training']['batch_size'], config=config
     )
 
     # Create model

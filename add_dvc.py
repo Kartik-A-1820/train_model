@@ -19,8 +19,9 @@ for dataset_name in dataset_names:
     val_dir = os.path.join(dataset_root, dataset_name, "val")
     test_dir = os.path.join(dataset_root, dataset_name, "test")
 
-    # Model file directory (e.g., results/dataset_name/model.h5)
-    model_path = os.path.join(results_root, dataset_name, "model.h5")
+    # Model file paths (e.g., results/dataset_name/)
+    best_model_path = os.path.join(results_root, dataset_name, "best_model.h5")
+    best_model_tuned_path = os.path.join(results_root, dataset_name, "best_model_tuned.h5")
 
     # Add train, val, and test directories to DVC
     if os.path.exists(train_dir):
@@ -30,9 +31,11 @@ for dataset_name in dataset_names:
     if os.path.exists(test_dir):
         subprocess.run(["dvc", "add", test_dir], check=True)
 
-    # Add model.h5 file to DVC
-    if os.path.exists(model_path):
-        subprocess.run(["dvc", "add", model_path], check=True)
+    # Add model files to DVC if they exist
+    if os.path.exists(best_model_path):
+        subprocess.run(["dvc", "add", best_model_path], check=True)
+    if os.path.exists(best_model_tuned_path):
+        subprocess.run(["dvc", "add", best_model_tuned_path], check=True)
 
 # DVC Push: Push all added files to the remote storage
 subprocess.run(["dvc", "push"], check=True)
