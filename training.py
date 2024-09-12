@@ -88,7 +88,11 @@ mlflow.set_experiment("image_classification_experiment")
 
 with mlflow.start_run():
     # Log parameters from config
+<<<<<<< HEAD
     mlflow.log_param("dataset", "White prawns")
+=======
+    mlflow.log_param("dataset", config['dataset_name'])
+>>>>>>> 627b5d0 (updated-according-to-ec2-linux)
     mlflow.log_param("batch_size", config['training']['batch_size'])
     mlflow.log_param("epochs", config['training']['epochs'])
     mlflow.log_param("img_size", config['model']['input_shape'])
@@ -179,7 +183,7 @@ with mlflow.start_run():
 # Stop instance after a 1-minute delay
 try:
     print("Training completed. Instance will stop in 1 minute.")
-    time.sleep(60)  # Wait for 1 minute
+    time.sleep(300)  # Wait for 5 minute
     stop_instance(instance_id)
     print(f"Instance {instance_id} is stopping.")
 except Exception as e:
