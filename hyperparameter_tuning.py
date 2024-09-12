@@ -7,57 +7,46 @@ from optimizers import get_optimizer
 from callbacks import get_callbacks
 import mlflow
 import pandas as pd
-
-def build_model(hp):
+def build_model(hp, img_size):
     # Load the configuration
     config = load_config()
 
-    # Choose the base model
+    # Choose the base model dynamically
     base_model_type = hp.Choice('base_model', values=config['tuning']['search_space']['base_model'])
     if base_model_type == 'DenseNet121':
         base_model = DenseNet121(
             weights='imagenet' if config['model']['pretrained'] else None,
             include_top=False,
-            input_shape=(None, None, 3)  # Image size will be determined later
+            input_shape=(img_size, img_size, 3)
         )
-        
     elif base_model_type == 'MobileNetV2':
         base_model = MobileNetV2(
             weights='imagenet' if config['model']['pretrained'] else None,
             include_top=False,
-            input_shape=(None, None, 3)
+            input_shape=(img_size, img_size, 3)
         )
     else:
         raise ValueError(f"Base model {base_model_type} is not supported.")
 
-    # base_model.trainable = config['model']['trainable']
-
+    # Unfreeze model layers based on config or from a specific layer
     if config['model']['trainable']:
-        try:
-            base_model.trainable=True
+        unfreeze_from_layer = config['model'].get('unfreeze_from_layer', None)
+        if unfreeze_from_layer:
             for layer in base_model.layers:
-                if layer.name != f'conv4_block1_0_bn'.strip(): #conv4_block1_0_bn best
-                    print(f"{layer.name} ---> FREEZED")
-                    layer.trainable=False
-                else:
-                    break
-        except:
-            base_model.trainable = config['model']['trainable']
-    
-    else:
-        base_model.trainable = config['model']['trainable']
+                layer.trainable = False
+                if layer.name == unfreeze_from_layer:
+                    layer.trainable = True
+        else:
+            base_model.trainable = True
 
-    # Determine the image size
-    img_size = hp.Choice('image_size', values=config['tuning']['search_space']['image_size'])
-
-    # Build the model
+    # Build the Sequential model
     model = models.Sequential([
         layers.Input(shape=(img_size, img_size, 3)),
         base_model,
         layers.GlobalAveragePooling2D()
     ])
 
-    # Add hyper-tuned layers
+    # Add hyper-tuned Dense and Dropout layers
     num_layers = hp.Int('num_layers', min_value=1, max_value=5)
     for i in range(num_layers):
         units = hp.Choice(f'units_{i}', values=config['tuning']['search_space']['units'])
@@ -73,8 +62,7 @@ def build_model(hp):
 
     # Compile the model
     learning_rate = float(hp.Choice('learning_rate', values=config['tuning']['search_space']['learning_rate']))
-    optimizer = get_optimizer(hp.Choice('optimizer', values=config['tuning']['search_space']['optimizer']),
-                              learning_rate)
+    optimizer = get_optimizer(hp.Choice('optimizer', values=config['tuning']['search_space']['optimizer']), learning_rate)
 
     model.compile(
         optimizer=optimizer,
@@ -89,16 +77,18 @@ def tune_hyperparameters():
     # Load the configuration
     config = load_config()
 
+    # Select the image size once and use it consistently for both model and data generators
+    hp_img_size = max(config['tuning']['search_space']['image_size'])
+    
     # Data generators
-    tuner_img_size = max(config['tuning']['search_space']['image_size'])  # Use the largest image size for tuning
     train_generator, validation_generator, _ = create_data_generators(
         config['data']['train_dir'], config['data']['val_dir'], config['data']['test_dir'],
-        img_size=(tuner_img_size, tuner_img_size), batch_size=config['training']['batch_size']
+        img_size=(hp_img_size, hp_img_size), batch_size=config['training']['batch_size']
     )
 
-    # Initialize the tuner
+    # Initialize the tuner with RandomSearch
     tuner = kt.RandomSearch(
-        build_model,
+        lambda hp: build_model(hp, hp_img_size),  # Pass the image size to the model building function
         objective=config['tuning']['objective'],
         max_trials=config['tuning']['max_trials'],
         executions_per_trial=config['tuning']['executions_per_trial'],
@@ -106,53 +96,18 @@ def tune_hyperparameters():
         project_name='image_classification_tuning'
     )
 
-    # Combine existing callbacks with MLflowLoggingCallback
-    callbacks = get_callbacks(config, 'results') 
-
-    # DataFrame to store trial results
-    trial_results = pd.DataFrame()
+    # Callbacks for training
+    callbacks = get_callbacks(config, 'results')
 
     # Start hyperparameter tuning
     tuner.search(train_generator, validation_data=validation_generator, epochs=config['training']['epochs'], callbacks=callbacks)
 
-    # Retrieve and store the results of each trial
-    for trial_id, trial in tuner.oracle.trials.items():
-        trial_params = trial.hyperparameters.values
-        # trial_metrics = {metric_name: metric_value for metric_name, metric_value in trial.metrics.get_config().items()}
+    # Retrieve the best hyperparameters and log them to MLflow
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 
-        # Combine parameters and metrics into a single dictionary
-        train_loss = trial.metrics.get_best_value('loss')
-        val_loss = trial.metrics.get_best_value('val_loss')
-        train_accuracy = trial.metrics.get_best_value('accuracy')
-        val_accuracy = trial.metrics.get_best_value('val_accuracy')
-
-        trial_info = {
-            **trial_params,
-            'train_loss': train_loss,
-            'val_loss': val_loss,
-            'train_accuracy': train_accuracy,
-            'val_accuracy': val_accuracy
-        }
-
-        # Convert the dictionary to a DataFrame
-        trial_info_df = pd.DataFrame([trial_info])
-
-        # Concatenate it to the existing trial_results DataFrame
-        trial_results = pd.concat([trial_results, trial_info_df], ignore_index=True)
-
-
-    # Log the DataFrame as an artifact in MLflow
-    mlflow.set_experiment("Hyperparameter Tuning")    
+    # Log hyperparameters and results to MLflow
+    mlflow.set_experiment("Hyperparameter Tuning")
     with mlflow.start_run(run_name="Hyperparameter Tuning"):
-        # Save the DataFrame to a CSV file
-        trial_results_file = 'trial_results.csv'
-        trial_results.to_csv(trial_results_file, index=False)
-        
-        # Log the CSV file as an artifact in MLflow
-        mlflow.log_artifact(trial_results_file)
-
-        # Log the best hyperparameters
-        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
         mlflow.log_params({
             'base_model': best_hps.get('base_model'),
             'image_size': best_hps.get('image_size'),
@@ -166,6 +121,7 @@ def tune_hyperparameters():
             mlflow.log_param(f'l2_reg_layer_{i}', best_hps.get(f'l2_{i}'))
         mlflow.log_param('output_l2', best_hps.get('l2_output'))
 
+        # Log best trial results
         print(f"""
         Best hyperparameters:
         - Base Model: {best_hps.get('base_model')}
@@ -180,6 +136,7 @@ def tune_hyperparameters():
         """)
 
     return best_hps
+
 
 if __name__ == '__main__':
     config = load_config()

@@ -4,11 +4,23 @@ from tensorflow.keras import layers, models, regularizers
 from metrics_losses import get_loss_function, get_metrics
 from optimizers import get_optimizer
 from callbacks import get_callbacks  # Import the callbacks
+import os
 
 def load_config(config_path='config.yaml'):
     with open(config_path, 'r') as file:
         config = yaml.safe_load(file)
     
+    # Fetch dataset_name and format the paths
+    dataset_name = config.get('dataset_name', 'default_dataset')
+    config['data']['train_dir'] = config['data']['train_dir'].format(dataset_name=dataset_name)
+    config['data']['val_dir'] = config['data']['val_dir'].format(dataset_name=dataset_name)
+    config['data']['test_dir'] = config['data']['test_dir'].format(dataset_name=dataset_name)
+
+    # Ensure directories exist
+    for path_key in ['train_dir', 'val_dir', 'test_dir']:
+        if not os.path.exists(config['data'][path_key]):
+            print(f"Warning: The path '{config['data'][path_key]}' does not exist.")
+
     # Ensure img_size and input_shape match
     if 'input_shape' in config['model'] and 'img_size' in config['data']:
         img_size = tuple(config['data']['img_size'])
@@ -40,19 +52,21 @@ def create_model(config):
     else:
         raise ValueError(f"Model type {model_config['type']} not supported.")
     
+    # Handle trainable/unfreezing layers
     if model_config.get('trainable', False):
-        try:
-            base_model.trainable=True
+        base_model.trainable = True
+        unfreeze_from_layer = model_config.get('unfreeze_from_layer', None)
+        if unfreeze_from_layer:
+            # Unfreeze only layers starting from a specific one
+            trainable = False
             for layer in base_model.layers:
-                if layer.name != f'conv3_block1_0_bn'.strip(): #conv4_block1_0_bn best
-                    layer.trainable=False
-                else:
-                    break
-        except:
-            base_model.trainable = model_config.get('trainable', False)
-    
+                if layer.name == unfreeze_from_layer:
+                    trainable = True
+                layer.trainable = trainable
+        else:
+            base_model.trainable = True
     else:
-        base_model.trainable = model_config.get('trainable', False)
+        base_model.trainable = False
 
     # Create the Sequential model and add base model
     model = models.Sequential([base_model, layers.GlobalAveragePooling2D()])
@@ -79,7 +93,9 @@ def create_model(config):
                 raise ValueError(f"Layer type {layer_type} not supported.")
     else:
         # Add default Dense layers if no custom layers are specified
+        print("No custom layers specified, adding default Dense layers.")
         model.add(layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(layers.Dropout(0.5))  # Default Dropout for regularization
         model.add(layers.Dense(1, activation='sigmoid', kernel_regularizer=regularizers.l2(0.01)))
 
     # Compile the model

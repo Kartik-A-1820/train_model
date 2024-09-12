@@ -13,22 +13,18 @@ from hyperparameter_tuning import tune_hyperparameters
 from instance_control import stop_instance
 import time
 
+
 def get_dvc_hash(dvc_file_path):
     """Get the DVC hash of a tracked file or directory."""
     try:
-        # Check if the file exists
         if not os.path.exists(dvc_file_path):
             print(f"DVC file {dvc_file_path} does not exist.")
             return None
-        
-        # Open the DVC file and extract the MD5 hash
+
         with open(dvc_file_path, 'r') as f:
             dvc_file_content = yaml.safe_load(f)
-        
-        # Extract the MD5 hash (handle .dir suffix)
+
         md5_hash = dvc_file_content['outs'][0]['md5']
-        
-        # If it's a directory, the hash ends with ".dir"
         if md5_hash.endswith('.dir'):
             md5_hash = md5_hash.replace('.dir', '')
 
@@ -38,25 +34,22 @@ def get_dvc_hash(dvc_file_path):
         return None
 
 
-
 # Load the configuration
 config = load_config()
 instance_id = config['instance_id']
+dataset_name = config['dataset_name']
 
 # Perform hyperparameter tuning if required
 if config['tuning']['perform_tuning']:
     best_hps = tune_hyperparameters()
     
-    # Build the list of custom layers based on the best hyperparameters
     custom_layers = []
     for i in range(best_hps.get('num_layers')):
         custom_layers.append({'type': 'Dense', 'units': best_hps.get(f'units_{i}'), 'activation': 'relu', 'l2': best_hps.get(f'l2_{i}')})
         custom_layers.append({'type': 'Dropout', 'rate': best_hps.get(f'dropout_rate_{i}')})
 
-    # Add the final output layer
     custom_layers.append({'type': 'Dense', 'units': 1, 'activation': 'sigmoid', 'l2': best_hps.get('l2_output')})
 
-    # Override configuration with the best hyperparameters
     config_override = {
         'model': {
             'type': best_hps.get('base_model'),
@@ -76,8 +69,8 @@ if config['tuning']['perform_tuning']:
 train_dir = config['data']['train_dir']
 val_dir = config['data']['val_dir']
 test_dir = config['data']['test_dir']
-results_dir = 'results'
-metrics_dir = 'metrics'
+results_dir = f'results/{dataset_name}'
+metrics_dir = f'metrics/{dataset_name}'
 
 # Create directories if they don't exist
 os.makedirs(results_dir, exist_ok=True)
@@ -87,18 +80,13 @@ os.makedirs(metrics_dir, exist_ok=True)
 mlflow.set_experiment("image_classification_experiment")
 
 with mlflow.start_run():
-    # Log parameters from config
-    mlflow.log_param("dataset", config['dataset_name'])
-    mlflow.log_param("batch_size", config['training']['batch_size'])
-    mlflow.log_param("epochs", config['training']['epochs'])
-    mlflow.log_param("img_size", config['model']['input_shape'])
-    mlflow.log_params(config['model'])  # Log model parameters
-    mlflow.log_params(config['training'])  # Log training parameters
+    mlflow.log_params(config['model'])
+    mlflow.log_params(config['training'])
 
     # Track DVC data versions
-    train_data_version = get_dvc_hash('data/train.dvc')
-    val_data_version = get_dvc_hash('data/val.dvc')
-    test_data_version = get_dvc_hash('data/test.dvc')
+    train_data_version = get_dvc_hash(f'{train_dir}.dvc')
+    val_data_version = get_dvc_hash(f'{val_dir}.dvc')
+    test_data_version = get_dvc_hash(f'{test_dir}.dvc')
 
     mlflow.log_param("train_data_version", train_data_version)
     mlflow.log_param("val_data_version", val_data_version)
@@ -121,32 +109,26 @@ with mlflow.start_run():
         train_generator,
         validation_data=validation_generator,
         epochs=config['training']['epochs'],
-        callbacks=callbacks  # Use the callbacks
+        callbacks=callbacks
     )
 
-    # Determine the correct accuracy metric key
-    accuracy_key = 'binary_accuracy' if 'binary_accuracy' in history.history else 'accuracy'
-
     # Log metrics and losses
-    for epoch in range(len(history.history['loss'])):  # Using 'loss' as a reference for the number of epochs
+    for epoch in range(len(history.history['loss'])):
         for metric_key, values in history.history.items():
-            metric_name = metric_key.replace('val_', 'val-')  # MLflow prefers 'val-' prefix for validation metrics
+            metric_name = metric_key.replace('val_', 'val-')
             mlflow.log_metric(metric_name, values[epoch], step=epoch)
 
     # Save and log training metrics plots
-    accuracy_plot_path = os.path.join(metrics_dir, 'accuracy_plot.png')
-    loss_plot_path = os.path.join(metrics_dir, 'loss_plot.png')
     plot_metrics(history, save_dir=metrics_dir)
-    mlflow.log_artifact(accuracy_plot_path)
-    mlflow.log_artifact(loss_plot_path)
+    mlflow.log_artifact(os.path.join(metrics_dir, 'accuracy_plot.png'))
+    mlflow.log_artifact(os.path.join(metrics_dir, 'loss_plot.png'))
 
     # Evaluate the model on the test set
     evaluation_results = model.evaluate(test_generator)
-    test_loss = evaluation_results[0]  # The first value is always the loss
-    test_accuracy = evaluation_results[1] 
+    test_loss = evaluation_results[0]
+    test_accuracy = evaluation_results[1]
     mlflow.log_metric("test_loss", test_loss)
     mlflow.log_metric("test_accuracy", test_accuracy)
-    print(f'Test Accuracy: {test_accuracy:.2f}')
 
     # Confusion Matrix
     y_true = test_generator.classes
@@ -154,33 +136,34 @@ with mlflow.start_run():
     y_pred_classes = np.where(y_pred > 0.5, 1, 0).flatten()
 
     cm = confusion_matrix(y_true, y_pred_classes)
-    confusion_matrix_path = os.path.join(metrics_dir, 'confusion_matrix.png')
     save_confusion_matrix(cm, save_dir=metrics_dir)
-    mlflow.log_artifact(confusion_matrix_path)
+    mlflow.log_artifact(os.path.join(metrics_dir, 'confusion_matrix.png'))
 
-    # Save the best model after tuning
-    if config['tuning']['perform_tuning']:
-        best_model_path = os.path.join(results_dir, 'best_model_tuned.h5')
-        model.save(best_model_path)
-        subprocess.run(['dvc', 'add', best_model_path])
-        subprocess.run(['dvc', 'push'])
-        mlflow.log_artifact(best_model_path)
+    # Save and track the best model
+    best_model_path = os.path.join(results_dir, 'best_model.h5')
+    model.save(best_model_path)
+    mlflow.log_artifact(best_model_path)
 
-    # Log the model (even if tuning is not performed)
-    mlflow.keras.log_model(model, "model")
+    try:
+        subprocess.run(['dvc', 'add', best_model_path], check=True)
+        subprocess.run(['dvc', 'push'], check=True)
+        subprocess.run(['git', 'add', f'{best_model_path}.dvc', '.gitignore'], check=True)
+        subprocess.run(['git', 'commit', '-m', 'Track best model'], check=True)
+        subprocess.run(['git', 'push'], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error adding/pushing model to DVC: {e}")
 
-    # Track the model in DVC
-    model_dvc_path = os.path.join(results_dir, 'best_model.h5')
-    subprocess.run(['dvc', 'add', model_dvc_path])
-    subprocess.run(['dvc', 'push'])
-    
+    # MLflow Signature (use test input instead of classes)
+    test_inputs = next(iter(test_generator))[0]
+    signature = mlflow.models.infer_signature(test_inputs, model.predict(test_inputs))
+    mlflow.keras.log_model(model, "model", signature=signature)
+
     mlflow.end_run()
 
-# Stop instance after a 1-minute delay
+# Stop instance after a 5-minute delay
 try:
-    print("Training completed. Instance will stop in 1 minute.")
-    time.sleep(300)  # Wait for 5 minute
+    print("Training completed. Instance will stop in 5 minutes.")
+    time.sleep(300)
     stop_instance(instance_id)
-    print(f"Instance {instance_id} is stopping.")
 except Exception as e:
     print(f"Failed to stop the instance {instance_id}. Error: {e}")

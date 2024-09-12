@@ -1,19 +1,20 @@
-# config.yaml
+# Dataset settings: Choose the name of the dataset you want to use
+dataset_name: 'white_prawn'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
 
-dataset_name: 'white_prawns_dataset'
-
+# Model settings: Choose the base model and customize layers
 model:
-  type: DenseNet121                                         # Currently only DenseNet121 OR MobileNetV2
-  input_shape: [224, 224, 3]
-  pretrained: True
-  trainable: True
-  custom_layers:
+  type: DenseNet121  # Options: DenseNet121 or MobileNetV2
+  input_shape: [224, 224, 3]  # Image size (width, height, channels)
+  pretrained: True  # Use a pre-trained model on ImageNet
+  trainable: False  # If False, the base model layers won't be updated during training
+  unfreeze_from_layer: 'conv4_block1_0_bn' # Layer from which to start unfreezing
+  custom_layers:  # These layers will be added on top of the base model
     - type: Dense
-      units: 256
-      activation: relu
-      l2: 0.001
+      units: 256  # Number of neurons in the layer
+      activation: relu  # Activation function
+      l2: 0.001  # L2 regularization to avoid overfitting
     - type: Dropout
-      rate: 0.2
+      rate: 0.2  # Dropout to prevent overfitting
     - type: Dense
       units: 128
       activation: relu
@@ -27,64 +28,68 @@ model:
     - type: Dropout
       rate: 0.1     
     - type: Dense
-      units: 1
-      activation: sigmoid
+      units: 1  # Final layer for binary classification
+      activation: sigmoid  # Sigmoid for binary output
       l2: 0.001
 
+# Training settings: Configure the batch size, number of epochs, and learning rate
 training:
-  batch_size: 32
-  epochs: 200
-  learning_rate: 0.0001
-  optimizer: adam  # Choose optimizer (adam, sgd, rmsprop, etc.)
-  loss_function: binary_crossentropy
+  batch_size: 32  # Number of images processed before updating the model
+  epochs: 1  # How many times the model will see the entire dataset
+  learning_rate: 0.0001  # How fast the model learns
+  optimizer: adam  # Options: adam / sgd / rmsprop (adam is recommended for most tasks)
+  loss_function: binary_crossentropy  # For binary classification
   metrics:
-    - accuracy
+    - accuracy  # Measure how accurate the model is
+    # Uncomment below to track precision and recall metrics
     # - precision
     # - recall
-  callbacks:
-    early_stopping: True
-    model_checkpoint: True
-    learning_rate_scheduler: reduce_on_plateau # Options: reduce_on_plateau, exponential_decay, none
+  callbacks:  # Automatically adjust training behavior
+    early_stopping: True  # Stop training if no improvement in validation performance
+    model_checkpoint: True  # Save the best model during training
+    learning_rate_scheduler: exponential_decay  # Options: reduce_on_plateau / exponential_decay / none
 
+# Data settings: Point to your dataset folders
 data:
-  img_size: [224, 224]
-  train_dir: data/train
-  val_dir: data/val
-  test_dir: data/test
+  img_size: [224, 224]  # Image size to be used in training
+  train_dir: data/{dataset_name}/train  # Training data folder
+  val_dir: data/{dataset_name}/val  # Validation data folder
+  test_dir: data/{dataset_name}/test  # Test data folder
 
-
+# Hyperparameter tuning: You can experiment with different model settings
 tuning:
-  perform_tuning: False         # Set to True to perform hyperparameter tuning
-  max_trials: 5             # Maximum number of trials during tuning
-  executions_per_trial: 1      # Number of executions per trial
-  objective: val_accuracy      # Objective metric to optimize during tuning
-  search_space:                # Hyperparameter search space definitions
-    base_model:                # Search between different base models
+  perform_tuning: False  # Set to True to enable hyperparameter tuning
+  max_trials: 5  # Maximum number of experiments to try
+  executions_per_trial: 1  # How many times to run each experiment
+  objective: val_accuracy  # The goal is to improve validation accuracy
+  search_space:  # The different settings to try during tuning
+    base_model:  # Which base models to try
       - DenseNet121
       - MobileNetV2
-    image_size:                # Search between different image sizes
+    image_size:  # Image sizes to try
       - 224
-    num_layers:                # Search between different numbers of layers
+    num_layers:  # Number of extra layers to try
       min: 1
       max: 5
-    units:                     # Search between different units per layer
+    units:  # Number of neurons to try in Dense layers
       - 64
       - 128
       - 256
-    dropout_rate:              # Search between different dropout rates
+    dropout_rate:  # Dropout rates to experiment with
       - 0.3
       - 0.4
       - 0.2
-    l2:                        # Search between different L2 regularization values
+    l2:  # L2 regularization values to try
       - 0.001
       - 0.01
       - 0.05
-    optimizer:                 # Search between different optimizers
+    optimizer:  # Which optimizers to try
       - adam
       - rmsprop
-    learning_rate:             # Search between different learning rates
+    learning_rate:  # Different learning rates to experiment with
       - 0.0001
       - 0.001
       - 0.01
 
-instance_id: 'your-instance-id-here'
+# Instance settings: Used to stop cloud instances after training (optional)
+instance_id: 'your-instance-id-here'  # Replace with your cloud instance ID if applicable
