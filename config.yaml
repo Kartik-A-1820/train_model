@@ -1,5 +1,5 @@
 # Dataset settings: Choose the name of the dataset you want to use
-dataset_name: 'white_prawn'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
+dataset_name: 'mackerel'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
 
 # Model settings: Choose the base model and customize layers
 model:
@@ -64,7 +64,7 @@ preprocessing:
 
 # Hyperparameter tuning: You can experiment with different model settings
 tuning:
-  perform_tuning: True  # Set to True to enable hyperparameter tuning
+  perform_tuning: False  # Set to True to enable hyperparameter tuning
   algorithm: 'random_search'  # Choose between 'random_search', 'bayesian_optimization', or 'hyperband'
   max_trials: 1  # Maximum number of experiments to try
   executions_per_trial: 1  # How many times to run each experiment
