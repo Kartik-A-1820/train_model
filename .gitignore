@@ -1,12 +1,12 @@
 # Ignore Python bytecode and cache files
 /__pycache__/
 
-# Ignore datasets
-/data/test/
-/data/train/
-/data/val/
+# Ignore contents of the data folder but allow .dvc files
+/data/*
+!/data/**/*.dvc
 
-/*.h5
+# Ignore all .h5 files from any directory
+**/*.h5
 
 # Ignore MLflow artifacts directory
 /mlruns/
