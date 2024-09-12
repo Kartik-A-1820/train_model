@@ -80,7 +80,8 @@ os.makedirs(results_dir, exist_ok=True)
 os.makedirs(metrics_dir, exist_ok=True)
 
 # MLflow experiment setup
-mlflow.set_experiment("image_classification_experiment")
+experiment_name = f"{config['dataset_name']}_experiments"
+mlflow.set_experiment(experiment_name)
 
 with mlflow.start_run():
     mlflow.log_params(config['model'])
