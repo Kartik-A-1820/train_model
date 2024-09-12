@@ -87,9 +87,4 @@ tuning:
       - 0.001
       - 0.01
 
-<<<<<<< HEAD
 instance_id: 'your-instance-id-here'
-=======
-instance_id: 'i-022c6d8c4a8168fc9'
-
->>>>>>> 627b5d0 (updated-according-to-ec2-linux)
