@@ -34,8 +34,8 @@ model:
 
 # Training settings: Configure the batch size, number of epochs, and learning rate
 training:
-  batch_size: 16  # Number of images processed before updating the model
-  epochs: 1  # How many times the model will see the entire dataset (could be overridden in tuning)
+  batch_size: 32  # Number of images processed before updating the model
+  epochs: 10  # How many times the model will see the entire dataset (could be overridden in tuning)
   learning_rate: 0.0001  # How fast the model learns (used if not tuning learning rate)
   optimizer: adam  # Default optimizer (tunable if tuning is enabled)
   loss_function: binary_crossentropy  # For binary classification
@@ -65,8 +65,8 @@ preprocessing:
 # Hyperparameter tuning: You can experiment with different model settings
 tuning:
   perform_tuning: False  # Set to True to enable hyperparameter tuning
-  algorithm: 'random_search'  # Choose between 'random_search', 'bayesian_optimization', or 'hyperband'
-  max_trials: 1  # Maximum number of experiments to try
+  algorithm: 'bayesian_optimization'  # Choose between 'random_search', 'bayesian_optimization', or 'hyperband'
+  max_trials: 20  # Maximum number of experiments to try
   executions_per_trial: 1  # How many times to run each experiment
   objective: val_accuracy  # The goal is to improve validation accuracy
   search_space:  # The different settings to try during tuning
@@ -75,8 +75,6 @@ tuning:
       - MobileNetV2
     image_size:  # Image sizes to try (consistent size used in data generators and model)
       - 224
-      - 128
-      - 112
     num_layers:  # Number of extra layers to try
       min: 1
       max: 5

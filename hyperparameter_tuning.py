@@ -84,27 +84,29 @@ class SGNNHyperModel(kt.HyperModel):
 
         return model
 
-def fit(self, hp, model, *args, **kwargs):
-    with mlflow.start_run():
-        # Log hyperparameters to MLflow
-        mlflow.log_params(hp.values)
-        # Automatically log TensorFlow metrics
-        mlflow.tensorflow.autolog(log_datasets=False)
+    def fit(self, hp, model, *args, **kwargs):
+        experiment_name = f"{config['dataset_name']}_Hyper_Parameter_Tuning"
+        mlflow.set_experiment(experiment_name)
+        with mlflow.start_run():
+            # Log hyperparameters to MLflow
+            mlflow.log_params(hp.values)
+            # Automatically log TensorFlow metrics
+            mlflow.tensorflow.autolog(log_datasets=False)
 
-        # Fit the model
-        history = model.fit(*args, **kwargs)
+            # Fit the model
+            history = model.fit(*args, **kwargs)
 
-        # Manually infer and log the model signature
-        validation_data = kwargs.get('validation_data')
-        sample_batch = next(iter(validation_data))  # Fetch a batch of data
-        test_data = sample_batch[0]  # Split into inputs only (drop labels)
+            # Manually infer and log the model signature
+            validation_data = kwargs.get('validation_data')
+            sample_batch = next(iter(validation_data))  # Fetch a batch of data
+            test_data = sample_batch[0]  # Split into inputs only (drop labels)
 
-        # Log the model with explicit input example to infer the signature
-        mlflow.keras.log_model(model, "model", 
-                               input_example=test_data[:1],  # Pass one sample
-                               signature=mlflow.models.infer_signature(test_data, model.predict(test_data)))
+            # Log the model with explicit input example to infer the signature
+            mlflow.keras.log_model(model, "model", 
+                                input_example=test_data[:1],  # Pass one sample
+                                signature=mlflow.models.infer_signature(test_data, model.predict(test_data)))
 
-        return history
+            return history
 
 
 

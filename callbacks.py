@@ -80,7 +80,7 @@ def get_callbacks(config, results_dir, train_datagen=None):
         callbacks.append(lr_scheduler)
 
     # Check for augmentation and dynamic augmentation
-    if config['data'].get('augmentation', False) and config['training']['callbacks'].get('dynamic_augmentation', False) and train_datagen is not None:
+    if config['data'].get('augmentation', False) and config['training']['callbacks'].get('dynamic_augmentation', False):
         # Define augmentation parameter ranges for each stage
         mild_params = {
             'rotation_range': 10,

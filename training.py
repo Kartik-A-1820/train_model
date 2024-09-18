@@ -86,15 +86,18 @@ mlflow.set_experiment(experiment_name)
 with mlflow.start_run():
     mlflow.log_params(config['model'])
     mlflow.log_params(config['training'])
-
+    
     # Track DVC data versions
     train_data_version = get_dvc_hash(f'{train_dir}.dvc')
     val_data_version = get_dvc_hash(f'{val_dir}.dvc')
     test_data_version = get_dvc_hash(f'{test_dir}.dvc')
 
+    mlflow.log_param("Dataset", dataset_name)
     mlflow.log_param("train_data_version", train_data_version)
     mlflow.log_param("val_data_version", val_data_version)
     mlflow.log_param("test_data_version", test_data_version)
+    mlflow.log_param("data_augmentation", config['data']['augmentation'])
+    mlflow.log_param("Adaptive_data_augmentation", config['training']['callbacks']['dynamic_augmentation'])
 
     # Create data generators
     img_size = tuple(config['model']['input_shape'][:2])
@@ -107,6 +110,7 @@ with mlflow.start_run():
 
     # Get callbacks
     callbacks = get_callbacks(config, results_dir)
+    print(f"Callbacks selected: {callbacks}")
 
     # Train the model
     history = model.fit(
@@ -153,7 +157,7 @@ with mlflow.start_run():
         subprocess.run(['dvc', 'push'], check=True)
         subprocess.run(['git', 'add', f'{best_model_path}.dvc', '.gitignore'], check=True)
         subprocess.run(['git', 'commit', '-m', 'Track best model'], check=True)
-        subprocess.run(['git', 'push', 'origin', 'main'], check=True)
+        # subprocess.run(['git', 'push', 'origin', 'main'], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error adding/pushing model to DVC: {e}")
 
