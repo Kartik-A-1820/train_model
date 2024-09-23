@@ -5,6 +5,7 @@ from metrics_losses import get_loss_function, get_metrics
 from optimizers import get_optimizer
 from callbacks import get_callbacks  # Import the callbacks
 import os
+from pid_L2_Dropout import change_model
 
 def load_config(config_path='config.yaml'):
     with open(config_path, 'r') as file:
@@ -102,6 +103,9 @@ def create_model(config):
     loss_function = get_loss_function(config['training']['loss_function'])
     metric_functions = get_metrics(config['training']['metrics'])
     optimizer = get_optimizer(config['training']['optimizer'], float(config['training']['learning_rate']))
+
+    if config['training']['callbacks'].get('pid_regularizer', False):
+        model = change_model(model)
 
     model.compile(
         optimizer=optimizer,

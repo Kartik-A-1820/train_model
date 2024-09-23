@@ -1,6 +1,6 @@
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, LearningRateScheduler, Callback
 import os
-
+from pid_L2_Dropout import PID_L2_DROPOUT
 
 # Custom callback to dynamically adjust augmentation based on loss difference
 class DynamicAugmentationCallback(Callback):
@@ -62,6 +62,16 @@ def get_callbacks(config, results_dir, train_datagen=None):
             verbose=1
         )
         callbacks.append(checkpoint)
+
+        # Add PID regularizer based on config
+    if config['training']['callbacks'].get('pid_regularizer', False):
+        pid_regularizer = PID_L2_DROPOUT(
+            K_p=config['pid']['K_p'],
+            K_i=config['pid']['K_i'],
+            K_d=config['pid']['K_d'],
+            start_epoch=config['pid']['start_epoch']
+        )
+        callbacks.append(pid_regularizer)
 
     # Learning Rate Scheduler Callback
     lr_scheduler_type = config['training']['callbacks'].get('learning_rate_scheduler', 'none')

@@ -85,6 +85,7 @@ class SGNNHyperModel(kt.HyperModel):
         return model
 
     def fit(self, hp, model, *args, **kwargs):
+        config = load_config()
         experiment_name = f"{config['dataset_name']}_Hyper_Parameter_Tuning"
         mlflow.set_experiment(experiment_name)
         with mlflow.start_run():
