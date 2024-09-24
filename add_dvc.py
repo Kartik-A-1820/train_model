@@ -58,7 +58,7 @@ for command in dvc_add_commands:
 run_command(["dvc", "push"])
 
 # Stage all changes (including untracked files and modifications)
-run_command(["git", "add", "-A"])
+run_command(["git", "add", "*.dvc", "*.py", "*.yaml"])
 
 # Construct the commit message with timestamp
 commit_message = f"Add datasets and model files to DVC - {timestamp}"
