@@ -13,3 +13,7 @@
 
 # Ignore tuner results directory
 /tuner_results/
+
+/results/
+
+/metrics/
