@@ -1,5 +1,5 @@
 # Dataset settings: Choose the name of the dataset you want to use
-dataset_name: 'mackerel'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
+dataset_name: 'sardine'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
 
 # Model settings: Choose the base model and customize layers
 model:
@@ -35,8 +35,8 @@ model:
 # Training settings: Configure the batch size, number of epochs, and learning rate
 training:
   batch_size: 32  # Number of images processed before updating the model
-  epochs: 10  # How many times the model will see the entire dataset (could be overridden in tuning)
-  learning_rate: 0.0001  # How fast the model learns (used if not tuning learning rate)
+  epochs: 3  # How many times the model will see the entire dataset (could be overridden in tuning)
+  learning_rate: 0.001  # How fast the model learns (used if not tuning learning rate)
   optimizer: adam  # Default optimizer (tunable if tuning is enabled)
   loss_function: binary_crossentropy  # For binary classification
   metrics:
@@ -47,7 +47,7 @@ training:
   callbacks:  # Automatically adjust training behavior
     early_stopping: True  # Stop training if no improvement in validation performance
     model_checkpoint: True  # Save the best model during training
-    learning_rate_scheduler: reduce_on_plateau  # Options: reduce_on_plateau / exponential_decay / none
+    learning_rate_scheduler: exponential_decay  # Options: reduce_on_plateau / exponential_decay / none
     dynamic_augmentation: True
     pid_regularizer: True
 # Data settings: Point to your dataset folders
