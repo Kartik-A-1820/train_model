@@ -45,10 +45,10 @@ for dataset_name in dataset_names:
         dvc_add_commands.append(["dvc", "add", test_dir])
 
     # Add model files to DVC if they exist (store commands to run later)
-    if os.path.exists(best_model_path):
-        dvc_add_commands.append(["dvc", "add", best_model_path])
-    if os.path.exists(best_model_tuned_path):
-        dvc_add_commands.append(["dvc", "add", best_model_tuned_path])
+    # if os.path.exists(best_model_path):
+    #     dvc_add_commands.append(["dvc", "add", best_model_path])
+    # if os.path.exists(best_model_tuned_path):
+    #     dvc_add_commands.append(["dvc", "add", best_model_tuned_path])
 
 # Execute all dvc add commands and ensure they are completed
 for command in dvc_add_commands:
