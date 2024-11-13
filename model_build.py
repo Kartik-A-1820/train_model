@@ -57,17 +57,31 @@ def create_model(config):
     if model_config.get('trainable', False):
         base_model.trainable = True
         unfreeze_from_layer = model_config.get('unfreeze_from_layer', None)
+        
         if unfreeze_from_layer:
             # Unfreeze only layers starting from a specific one
             trainable = False
             for layer in base_model.layers:
+                # Start making layers trainable once the specified layer is reached
                 if layer.name == unfreeze_from_layer:
                     trainable = True
-                layer.trainable = trainable
+                # Freeze BatchNormalization layers regardless
+                if isinstance(layer, layers.BatchNormalization):
+                    layer.trainable = False
+                else:
+                    layer.trainable = trainable
         else:
-            base_model.trainable = True
+            # Set all layers trainable, but keep BatchNormalization layers frozen
+            for layer in base_model.layers:
+                if isinstance(layer, layers.BatchNormalization):
+                    layer.trainable = False
+                else:
+                    layer.trainable = True
     else:
+        # If trainable is False, freeze all layers
         base_model.trainable = False
+        for layer in base_model.layers:
+            layer.trainable = False
 
     # Create the Sequential model and add base model
     model = models.Sequential([base_model, layers.GlobalAveragePooling2D()])

@@ -1,12 +1,12 @@
 # Dataset settings: Choose the name of the dataset you want to use
-dataset_name: 'sardine'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
+dataset_name: 'mackerel'  # Options: 'white_prawn' / 'mackerel' / 'sardine'
 
 # Model settings: Choose the base model and customize layers
 model:
   type: DenseNet121  # Options: DenseNet121 or MobileNetV2
   input_shape: [224, 224, 3]  # Image size (width, height, channels)
   pretrained: True  # Use a pre-trained model on ImageNet
-  trainable: False  # If False, the base model layers won't be updated during training
+  trainable: True  # If False, the base model layers won't be updated during training
   unfreeze_from_layer: 'conv4_block1_0_bn'  # Layer from which to start unfreezing if trainable is True
   custom_layers:  # These layers will be added on top of the base model
     - type: Dense
@@ -16,17 +16,17 @@ model:
     - type: Dropout
       rate: 0.2  # Dropout to prevent overfitting
     - type: Dense
-      units: 128
+      units: 256
       activation: relu
       l2: 0.001
     - type: Dropout
       rate: 0.2
     - type: Dense
-      units: 64
+      units: 256
       activation: relu
       l2: 0.001
     - type: Dropout
-      rate: 0.1     
+      rate: 0.2     
     - type: Dense
       units: 1  # Final layer for binary classification
       activation: sigmoid  # Sigmoid for binary output
@@ -35,8 +35,8 @@ model:
 # Training settings: Configure the batch size, number of epochs, and learning rate
 training:
   batch_size: 32  # Number of images processed before updating the model
-  epochs: 3  # How many times the model will see the entire dataset (could be overridden in tuning)
-  learning_rate: 0.001  # How fast the model learns (used if not tuning learning rate)
+  epochs: 200  # How many times the model will see the entire dataset (could be overridden in tuning)
+  learning_rate: 0.0001  # How fast the model learns (used if not tuning learning rate)
   optimizer: adam  # Default optimizer (tunable if tuning is enabled)
   loss_function: binary_crossentropy  # For binary classification
   metrics:
@@ -47,9 +47,9 @@ training:
   callbacks:  # Automatically adjust training behavior
     early_stopping: True  # Stop training if no improvement in validation performance
     model_checkpoint: True  # Save the best model during training
-    learning_rate_scheduler: exponential_decay  # Options: reduce_on_plateau / exponential_decay / none
-    dynamic_augmentation: True
-    pid_regularizer: True
+    learning_rate_scheduler: reduce_on_plateau  # Options: reduce_on_plateau / exponential_decay / none
+    dynamic_augmentation: False
+    pid_regularizer: False
 # Data settings: Point to your dataset folders
 data:
   img_size: [224, 224]  # Image size to be used in training
@@ -107,4 +107,4 @@ pid:
   start_epoch: 0
 
 # Instance settings: Used to stop cloud instances after training (optional)
-instance_id: 'your-instance-id-here'  # Replace with your cloud instance ID if applicable
+instance_id: 'i-022c6d8c4a8168fc9'  # Replace with your cloud instance ID if applicable
